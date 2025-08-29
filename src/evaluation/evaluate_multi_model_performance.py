@@ -28,12 +28,12 @@ class MultiModelEvaluator:
         self.emotion_categories = ["angry", "disgust", "fear", "happy", "neutral", "sad", "surprise"]
         self.models = {
             "GLM-4.5V": {
-                "results_file": "glm_emotion_results.json",
+                "results_file": "../../results/glm_emotion_results.json",
                 "model_name": "z-ai/glm-4.5v",
                 "color": "#3498db"
             },
             "Gemini 2.5 Flash": {
-                "results_file": "gemini_emotion_results.json", 
+                "results_file": "../../results/gemini_emotion_results.json", 
                 "model_name": "google/gemini-2.5-flash-image-preview",
                 "color": "#27ae60"
             }
@@ -72,7 +72,7 @@ class MultiModelEvaluator:
     
     def load_ground_truth(self) -> pd.DataFrame:
         """Load ground truth data from Excel file"""
-        excel_path = Path('valid_set_1_test_for_inference_add_width_height.xlsx')
+        excel_path = Path('../../data/valid_set_1_test_for_inference_add_width_height.xlsx')
         
         if not excel_path.exists():
             print(f"❌ Ground truth file not found: {excel_path}")
@@ -614,7 +614,7 @@ class MultiModelEvaluator:
         html_content = self.generate_comparison_report(evaluations, model_stats)
         
         # Save report
-        output_file = "multi_model_comparison_report.html"
+        output_file = "../../reports/multi_model_comparison_report.html"
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(html_content)
         

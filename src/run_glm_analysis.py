@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Demo script to run Gemini 2.5 Flash Image Preview emotion analysis
+Demo script to run GLM-4.5V emotion analysis
 
 Before running this script:
 1. Get your API key from: https://openrouter.ai/keys
@@ -12,10 +12,10 @@ The script will automatically load the API key from the .env file.
 
 import os
 from pathlib import Path
-from gemini_emotion_analyzer import GeminiEmotionAnalyzer
+from analyzers.glm_emotion_analyzer import GLMEmotionAnalyzer
 
 def main():
-    """Run Gemini emotion analysis demo"""
+    """Run emotion analysis demo"""
     
     # Check for API key
     if not os.getenv('OPENROUTER_API_KEY'):
@@ -26,20 +26,20 @@ def main():
         return
     
     # Configuration
-    image_folder = Path(r"C:\Users\zdhpe\Desktop\emotion\dfew_128\New folder")
+    image_folder = Path(r"../dfew_128/New folder")
     num_images = None  # None = analyze ALL images (128 total)
     
     try:
         # Initialize analyzer
-        print("🔧 Initializing Gemini 2.5 Flash Image Preview analyzer...")
-        analyzer = GeminiEmotionAnalyzer()
+        print("🔧 Initializing GLM-4.5V analyzer...")
+        analyzer = GLMEmotionAnalyzer()
         
         # Run analysis
         results = analyzer.analyze_batch(image_folder, num_images)
         
         # Save results
         if results:
-            analyzer.save_results(results, "gemini_emotion_results.json")
+            analyzer.save_results(results, "../results/glm_emotion_results.json")
             print("\n🎉 Demo completed successfully!")
         
     except Exception as e:
