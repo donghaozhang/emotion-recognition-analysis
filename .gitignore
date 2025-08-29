@@ -3,6 +3,8 @@
 *.zip
 *.json
 *.jsonl
+*.xlsx
+*.xls
 
 # Image directories and files
 dfew_128/
@@ -79,6 +81,9 @@ outputs/
 results/
 *.log
 *.out
+
+# Generated reports
+glm_emotion_results.*
 
 # Large model files
 *.pkl
