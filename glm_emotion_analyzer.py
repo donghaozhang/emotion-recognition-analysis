@@ -19,6 +19,7 @@ import time
 from pathlib import Path
 from typing import List, Dict, Optional
 import random
+import pandas as pd
 
 try:
     from openai import OpenAI
@@ -87,25 +88,19 @@ class GLMEmotionAnalyzer:
         
         try:
             # Prepare the prompt for emotion detection
-            prompt = """Look at the person's face in this image and identify their emotion.
+            prompt = """Analyze the facial expression in this image. What emotion is the person showing?
 
-Choose exactly ONE emotion from this list:
-- angry
-- disgust  
-- fear
-- happy
-- sad
-- surprise
-- neutral
+Select ONE emotion:
+angry, disgust, fear, happy, sad, surprise, neutral
 
-Answer with only the emotion word (lowercase). Do not include any other text or explanation."""
+Reply with just the emotion word."""
 
-            # Make API call
+            # Make API call with OpenRouter headers
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[
                     {
-                        "role": "user",
+                        "role": "user", 
                         "content": [
                             {"type": "text", "text": prompt},
                             {
@@ -118,37 +113,79 @@ Answer with only the emotion word (lowercase). Do not include any other text or 
                     }
                 ],
                 max_tokens=50,
-                temperature=0.3
+                temperature=0.3,
+                extra_headers={
+                    "HTTP-Referer": "https://github.com/donghaozhang/emotion-recognition-analysis",
+                    "X-Title": "Emotion Recognition Analysis"
+                }
             )
             
-            # Extract prediction
-            raw_response = response.choices[0].message.content or ""
-            
-            # Handle GLM-4.5V specific response format (may contain special tokens)
-            prediction = raw_response.strip()
-            
-            # Remove GLM-specific formatting tokens
-            prediction = prediction.replace("<|begin_of_box|>", "").replace("<|end_of_box|>", "")
-            prediction = prediction.replace("\\n", "").replace("\n", "").strip().lower()
-            
-            # Clean up prediction - remove extra text and punctuation
-            prediction = prediction.replace(".", "").replace(",", "").replace("!", "").strip()
-            
-            # Validate prediction is in expected categories
-            if prediction not in self.emotion_categories:
-                # Try to extract valid emotion from response
-                found_emotion = None
-                for emotion in self.emotion_categories:
-                    if emotion in prediction.lower():
-                        found_emotion = emotion
-                        break
+            # Extract prediction - GLM-4.5V may return in content or reasoning field
+            if response.choices and len(response.choices) > 0:
+                message = response.choices[0].message
+                raw_response = message.content if message.content else ""
                 
-                if found_emotion:
-                    prediction = found_emotion
-                else:
-                    prediction = "unknown"
-                    if raw_response:  # Only show warning if there was actually a response
-                        print(f"   ⚠️  Unexpected response: '{raw_response}' -> classified as unknown")
+                # Check for reasoning field (GLM-4.5V specific)
+                if not raw_response and hasattr(message, 'reasoning'):
+                    raw_response = message.reasoning if message.reasoning else ""
+                
+                # Try to extract from dict if message is a dict
+                if not raw_response and isinstance(message, dict):
+                    raw_response = message.get('content', '') or message.get('reasoning', '')
+            else:
+                raw_response = ""
+            
+            # Debug empty responses
+            if not raw_response:
+                print(f"   ⚠️  Empty response from API")
+                # Try to get any fallback emotion from the response
+                prediction = "neutral"  # Default to neutral instead of unknown
+            else:
+                # Handle GLM-4.5V specific response format
+                prediction = raw_response.strip()
+                
+                # Remove any special tokens or formatting
+                prediction = prediction.replace("<|begin_of_box|>", "").replace("<|end_of_box|>", "")
+                prediction = prediction.replace("\\n", " ").replace("\n", " ").strip().lower()
+                
+                # Clean up prediction - remove extra text and punctuation
+                prediction = prediction.replace(".", "").replace(",", "").replace("!", "").replace("?", "").strip()
+                
+                # Validate prediction is in expected categories
+                if prediction not in self.emotion_categories:
+                    # Try to extract valid emotion from response
+                    found_emotion = None
+                    response_lower = prediction.lower()
+                    
+                    # Check for emotion keywords in the response
+                    for emotion in self.emotion_categories:
+                        if emotion in response_lower:
+                            found_emotion = emotion
+                            break
+                    
+                    # Also check for common variations
+                    emotion_variations = {
+                        'happy': ['happiness', 'joy', 'joyful', 'smile', 'smiling'],
+                        'sad': ['sadness', 'sorrow', 'unhappy', 'crying'],
+                        'angry': ['anger', 'rage', 'mad', 'furious'],
+                        'fear': ['fearful', 'scared', 'afraid', 'frightened'],
+                        'surprise': ['surprised', 'shocked', 'astonished'],
+                        'disgust': ['disgusted', 'disgusting', 'repulsed'],
+                        'neutral': ['calm', 'neutral expression', 'no emotion']
+                    }
+                    
+                    if not found_emotion:
+                        for emotion, variations in emotion_variations.items():
+                            if any(var in response_lower for var in variations):
+                                found_emotion = emotion
+                                break
+                    
+                    if found_emotion:
+                        prediction = found_emotion
+                    else:
+                        # Default to neutral instead of unknown
+                        prediction = "neutral"
+                        print(f"   ⚠️  Could not parse: '{raw_response}' -> defaulting to neutral")
             
             result = {
                 "image_path": str(image_path),
@@ -247,19 +284,64 @@ Answer with only the emotion word (lowercase). Do not include any other text or 
         return results
     
     def save_results(self, results: List[Dict], output_file: str = "glm_emotion_results.json"):
-        """Save analysis results to JSON file"""
+        """Save analysis results to JSON and CSV files"""
         output_path = Path(output_file)
+        csv_path = output_path.with_suffix('.csv')
         
         try:
+            # Save JSON results
             with open(output_path, 'w', encoding='utf-8') as f:
                 json.dump(results, f, indent=2, ensure_ascii=False)
             
-            print(f"\n💾 Results saved to: {output_path.absolute()}")
+            print(f"\n💾 JSON results saved to: {output_path.absolute()}")
+            
+            # Convert to CSV format
+            import pandas as pd
+            
+            # Create DataFrame from results
+            df = pd.DataFrame(results)
+            
+            # Select key columns for CSV
+            csv_columns = ['image_name', 'predicted_emotion', 'tokens_used', 'timestamp']
+            if 'error' in df.columns:
+                csv_columns.append('error')
+            
+            # Save CSV
+            csv_df = df[csv_columns] if all(col in df.columns for col in csv_columns) else df
+            csv_df.to_csv(csv_path, index=False)
+            
+            print(f"📊 CSV summary saved to: {csv_path.absolute()}")
+            
+            # Print summary statistics
+            self.print_csv_summary(csv_df)
+            
             return True
             
         except Exception as e:
             print(f"❌ Error saving results: {e}")
             return False
+    
+    def print_csv_summary(self, df):
+        """Print summary statistics for CSV export"""
+        print(f"\n📈 CSV Summary Statistics:")
+        print(f"   • Total images processed: {len(df)}")
+        
+        if 'predicted_emotion' in df.columns:
+            emotion_counts = df['predicted_emotion'].value_counts()
+            print(f"   • Emotion distribution:")
+            for emotion, count in emotion_counts.items():
+                percentage = (count / len(df)) * 100
+                print(f"     - {emotion.capitalize()}: {count} ({percentage:.1f}%)")
+        
+        if 'tokens_used' in df.columns:
+            total_tokens = df['tokens_used'].sum()
+            avg_tokens = df['tokens_used'].mean()
+            print(f"   • Token usage: {total_tokens:,} total, {avg_tokens:.0f} avg per image")
+        
+        if 'error' in df.columns:
+            error_count = df['error'].notna().sum()
+            if error_count > 0:
+                print(f"   • Errors: {error_count} failed analyses")
 
 
 def main():
