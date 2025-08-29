@@ -48,7 +48,7 @@ class GLMPerformanceEvaluator:
             print("❌ GLM results file not found. Please run the analysis first.")
             return None, None
             
-        with open(glm_results_path, 'r') as f:
+        with open(glm_results_path, 'r', encoding='utf-8') as f:
             glm_results = json.load(f)
             
         # Convert to DataFrame
