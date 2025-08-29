@@ -49,7 +49,7 @@ class GPT5EmotionAnalyzer:
             api_key=self.api_key,
         )
         
-        self.model_name = "openai/gpt-5"
+        self.model_name = "openai/gpt-5-chat"
         self.emotion_categories = ["angry", "disgust", "fear", "happy", "sad", "surprise", "neutral"]
         
     def encode_image_to_base64(self, image_path: Path) -> str:

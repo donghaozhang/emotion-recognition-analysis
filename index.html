@@ -257,9 +257,9 @@
                     </div>
                 </div>
             </div>
-            <div class="model-card winner">
+            <div class="model-card ">
                 <h2 class="model-title" style="color: #27ae60">Gemini 2.5 Flash</h2>
-                <div class="winner-badge">🏆 Best Accuracy</div>
+                
                 
                 <div class="metrics-grid">
                     <div class="metric-item">
@@ -284,6 +284,37 @@
                     </div>
                     <div class="metric-item">
                         <span class="metric-value">178,178</span>
+                        <div class="metric-label">Total Tokens</div>
+                    </div>
+                </div>
+            </div>
+            <div class="model-card winner">
+                <h2 class="model-title" style="color: #e74c3c">GPT-5 Chat</h2>
+                <div class="winner-badge">🏆 Best Accuracy</div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <span class="metric-value">68.0%</span>
+                        <div class="metric-label">Accuracy</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value">87.0/128</span>
+                        <div class="metric-label">Correct</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value">0.590</span>
+                        <div class="metric-label">Macro F1</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value">0.678</span>
+                        <div class="metric-label">Weighted F1</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value">400</span>
+                        <div class="metric-label">Tokens/Image</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value">51,249</span>
                         <div class="metric-label">Total Tokens</div>
                     </div>
                 </div>
@@ -320,13 +351,23 @@
                     </tr>
                     <tr>
                         <td><strong>Gemini 2.5 Flash</strong></td>
-                        <td class="best-score">67.2%</td>
+                        <td class="">67.2%</td>
                         <td>0.569</td>
                         <td>0.681</td>
                         <td>0.581</td>
                         <td>0.574</td>
                         <td>1392</td>
                         <td class="best-score">2.9s/img</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GPT-5 Chat</strong></td>
+                        <td class="best-score">68.0%</td>
+                        <td>0.590</td>
+                        <td>0.678</td>
+                        <td>0.612</td>
+                        <td>0.700</td>
+                        <td>400</td>
+                        <td class="">~3.5s/img</td>
                     </tr>
                 </tbody>
             </table>
@@ -345,13 +386,13 @@
             <h2 class="section-title">🔍 Key Performance Insights</h2>
             
             <div class="insight-card">
-                <div class="insight-title">🏆 Winner: Gemini 2.5 Flash</div>
-                <p>Gemini 2.5 Flash achieved the highest accuracy at 67.2%, making it the superior model for emotion recognition on this dataset.</p>
+                <div class="insight-title">🏆 Winner: GPT-5 Chat</div>
+                <p>GPT-5 Chat achieved the highest accuracy at 68.0%, making it the superior model for emotion recognition on this dataset.</p>
             </div>
 
             <div class="insight-card">
                 <div class="insight-title">⚡ Speed Comparison</div>
-                <p>Gemini 2.5 Flash processes images 55% faster (2.9s vs 4.5s per image), making it more suitable for real-time applications despite potentially lower accuracy.</p>
+                <p>Processing speeds vary across models, with Gemini 2.5 Flash being fastest (2.9s), GPT-5 estimated at ~3.5s, and GLM-4.5V at 4.5s per image.</p>
             </div>
 
             <div class="insight-card">
@@ -368,7 +409,7 @@
         <!-- Footer -->
         <div class="footer">
             <p>🤖 Generated with Claude Code | Multi-Model Emotion Recognition Evaluation</p>
-            <p>Analysis Date: 2025-08-29 16:54:27 | Dataset: 128 EXPW Images</p>
+            <p>Analysis Date: 2025-08-29 17:45:29 | Dataset: 128 EXPW Images</p>
         </div>
     </div>
 
@@ -399,6 +440,16 @@
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
                         pointHoverBorderColor: '#27ae60'
+                    },
+                    {
+                        label: 'GPT-5 Chat',
+                        data: [0.680, 0.590, 0.678, 0.612, 0.700],
+                        borderColor: '#e74c3c',
+                        backgroundColor: '#e74c3c33',
+                        pointBackgroundColor: '#e74c3c',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#e74c3c'
                     }
                 ]
             },

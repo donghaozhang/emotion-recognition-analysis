@@ -37,9 +37,9 @@ class MultiModelEvaluator:
                 "model_name": "google/gemini-2.5-flash-image-preview",
                 "color": "#27ae60"
             },
-            "GPT-5": {
+            "GPT-5 Chat": {
                 "results_file": "../../results/gpt5_emotion_results.json",
-                "model_name": "openai/gpt-5", 
+                "model_name": "openai/gpt-5-chat", 
                 "color": "#e74c3c"
             }
         }
