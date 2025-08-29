@@ -6,6 +6,10 @@ A comprehensive multi-model emotion recognition evaluation system using state-of
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 ![Models](https://img.shields.io/badge/Models-2-orange.svg)
 
+## 🔗 Live Demo
+
+**[📊 View Interactive Report](https://donghaozhang.github.io/emotion-recognition-analysis/)** - Multi-model comparison dashboard
+
 ## 🏆 Performance Results
 
 | Model | Accuracy | Macro F1 | Speed | Cost Efficiency |
