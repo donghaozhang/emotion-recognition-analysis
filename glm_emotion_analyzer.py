@@ -257,8 +257,10 @@ Reply with just the emotion word."""
         print("-" * 60)
         
         for i, image_path in enumerate(selected_images, 1):
-            # Progress indicator with percentage
+            # Progress indicator with percentage and timing
             progress_pct = (i / len(selected_images)) * 100
+            elapsed = time.time() - start_time
+            
             print(f"\n[{i}/{len(selected_images)}] ({progress_pct:.1f}%) ", end="")
             
             result = self.analyze_emotion(image_path)
@@ -267,13 +269,20 @@ Reply with just the emotion word."""
             if 'tokens_used' in result:
                 total_tokens += result['tokens_used']
             
-            # Show running statistics every 10 images
-            if i % 10 == 0:
-                elapsed = time.time() - start_time
-                avg_time = elapsed / i
-                remaining = avg_time * (len(selected_images) - i)
-                print(f"\n   ⏱️  Progress: {i} done, ~{remaining:.0f}s remaining")
-                print(f"   🪙  Tokens used so far: {total_tokens:,}")
+            # Print result immediately after each image
+            if 'predicted_emotion' in result:
+                print(f" -> {result['predicted_emotion']} ({result.get('tokens_used', 0)} tokens)")
+            else:
+                print(f" -> ERROR: {result.get('error', 'unknown error')}")
+            
+            # Show running statistics after each image
+            avg_time = elapsed / i if i > 0 else 0
+            remaining_images = len(selected_images) - i
+            estimated_remaining = avg_time * remaining_images
+            
+            # Print compact status line
+            if remaining_images > 0:
+                print(f"    💭 Tokens: {total_tokens:,} | Avg: {avg_time:.1f}s/img | ETA: {estimated_remaining:.0f}s")
             
             # Rate limiting - small delay between requests
             if i < len(selected_images):

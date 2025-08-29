@@ -27,7 +27,7 @@ def main():
     
     # Configuration
     image_folder = Path(r"C:\Users\zdhpe\Desktop\emotion\dfew_128\New folder")
-    num_images = None  # None = analyze ALL images, or set a number (e.g., 20) to limit
+    num_images = None  # None = analyze ALL images (128 total)
     
     try:
         # Initialize analyzer
