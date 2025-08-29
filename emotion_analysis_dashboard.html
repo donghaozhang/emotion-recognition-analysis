@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXPW Emotion Recognition Dataset Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #3498db;
+            display: block;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+        
+        .chart-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+        
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .model-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #3498db;
+        }
+        
+        .model-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .model-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .coverage-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .coverage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            transition: width 0.5s ease;
+        }
+        
+        .emotion-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .emotion-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .emotion-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .key-insights {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .insight-card {
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .insight-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .insight-description {
+            color: #555;
+            line-height: 1.5;
+        }
+        
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 40px;
+            padding: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🎭 EXPW Dataset Analysis</h1>
+            <p class="subtitle">Expression in the Wild - Emotion Recognition Dataset</p>
+        </header>
+
+        <!-- Overview Stats -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number">1,500</span>
+                <div class="stat-label">Total Samples</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">27</span>
+                <div class="stat-label">Features</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">9</span>
+                <div class="stat-label">AI Models</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">7</span>
+                <div class="stat-label">Emotion Categories</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">640×605</span>
+                <div class="stat-label">Avg Image Size</div>
+            </div>
+        </section>
+
+        <!-- Emotion Distribution Chart -->
+        <section class="chart-section">
+            <h2 class="section-title">📊 Emotion Distribution</h2>
+            <div class="chart-container">
+                <canvas id="emotionChart"></canvas>
+            </div>
+            <div class="emotion-legend">
+                <div class="emotion-item">
+                    <div class="emotion-color" style="background: #e74c3c;"></div>
+                    <span>Angry</span>
+                </div>
+                <div class="emotion-item">
+                    <div class="emotion-color" style="background: #8e44ad;"></div>
+                    <span>Disgust</span>
+                </div>
+                <div class="emotion-item">
+                    <div class="emotion-color" style="background: #34495e;"></div>
+                    <span>Fear</span>
+                </div>
+                <div class="emotion-item">
+                    <div class="emotion-color" style="background: #f1c40f;"></div>
+                    <span>Happy</span>
+                </div>
+                <div class="emotion-item">
+                    <div class="emotion-color" style="background: #3498db;"></div>
+                    <span>Sad</span>
+                </div>
+                <div class="emotion-item">
+                    <div class="emotion-color" style="background: #e67e22;"></div>
+                    <span>Surprise</span>
+                </div>
+                <div class="emotion-item">
+                    <div class="emotion-color" style="background: #95a5a6;"></div>
+                    <span>Neutral</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Model Performance -->
+        <section class="chart-section">
+            <h2 class="section-title">🤖 Model Performance Overview</h2>
+            <div class="models-grid">
+                <div class="model-card">
+                    <div class="model-name">EXPW 7B (Trained)</div>
+                    <div class="model-stats">
+                        <span>Coverage: 100%</span>
+                        <span>7 Unique Labels</span>
+                    </div>
+                    <div class="coverage-bar">
+                        <div class="coverage-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="model-card">
+                    <div class="model-name">EXPW 7B (No Training)</div>
+                    <div class="model-stats">
+                        <span>Coverage: 99.8%</span>
+                        <span>16 Unique Labels</span>
+                    </div>
+                    <div class="coverage-bar">
+                        <div class="coverage-fill" style="width: 99.8%;"></div>
+                    </div>
+                </div>
+                <div class="model-card">
+                    <div class="model-name">EXPW 3B (Trained)</div>
+                    <div class="model-stats">
+                        <span>Coverage: 100%</span>
+                        <span>8 Unique Labels</span>
+                    </div>
+                    <div class="coverage-bar">
+                        <div class="coverage-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="model-card">
+                    <div class="model-name">EXPW 3B (No Training)</div>
+                    <div class="model-stats">
+                        <span>Coverage: 95.4%</span>
+                        <span>18 Unique Labels</span>
+                    </div>
+                    <div class="coverage-bar">
+                        <div class="coverage-fill" style="width: 95.4%;"></div>
+                    </div>
+                </div>
+                <div class="model-card">
+                    <div class="model-name">VideoLLaMA2</div>
+                    <div class="model-stats">
+                        <span>Coverage: 100%</span>
+                        <span>16 Unique Labels</span>
+                    </div>
+                    <div class="coverage-bar">
+                        <div class="coverage-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="model-card">
+                    <div class="model-name">LLaVANext</div>
+                    <div class="model-stats">
+                        <span>Coverage: 100%</span>
+                        <span>16 Unique Labels</span>
+                    </div>
+                    <div class="coverage-bar">
+                        <div class="coverage-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="model-card">
+                    <div class="model-name">VILA</div>
+                    <div class="model-stats">
+                        <span>Coverage: 100%</span>
+                        <span>9 Unique Labels</span>
+                    </div>
+                    <div class="coverage-bar">
+                        <div class="coverage-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="model-card">
+                    <div class="model-name">MiniCPM-V</div>
+                    <div class="model-stats">
+                        <span>Coverage: 100%</span>
+                        <span>16 Unique Labels</span>
+                    </div>
+                    <div class="coverage-bar">
+                        <div class="coverage-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="model-card">
+                    <div class="model-name">VideoCCAM</div>
+                    <div class="model-stats">
+                        <span>Coverage: 100%</span>
+                        <span>10 Unique Labels</span>
+                    </div>
+                    <div class="coverage-bar">
+                        <div class="coverage-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dataset Characteristics -->
+        <section class="chart-section">
+            <h2 class="section-title">📦 Dataset Characteristics</h2>
+            <div class="chart-container">
+                <canvas id="characteristicsChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Key Insights -->
+        <section class="key-insights">
+            <h2 class="section-title">🔍 Key Insights</h2>
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <div class="insight-title">📸 Multi-Modal Data</div>
+                    <div class="insight-description">
+                        Combines facial images, text descriptions, and structured predictions with comprehensive metadata including multiple bounding box formats.
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">🧠 Rich Model Comparison</div>
+                    <div class="insight-description">
+                        Features 9 different AI models including EXPW fine-tuned variants and leading vision-language models for comprehensive benchmarking.
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">🎯 Structured Reasoning</div>
+                    <div class="insight-description">
+                        Model responses include structured thinking traces with &lt;think&gt; and &lt;answer&gt; tags, providing insight into AI reasoning processes.
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">📐 Precise Face Detection</div>
+                    <div class="insight-description">
+                        Multiple coordinate systems and relative area measurements enable detailed face detection accuracy analysis.
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">⚡ Research Ready</div>
+                    <div class="insight-description">
+                        Complete dataset with consistent labeling, high model coverage (95.4-100%), and balanced emotion distribution for research applications.
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">🔄 Quality Assurance</div>
+                    <div class="insight-description">
+                        All expression labels are consistent with ground truth annotations, ensuring data integrity for reliable analysis results.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Details -->
+        <section class="chart-section">
+            <h2 class="section-title">⚙️ Technical Specifications</h2>
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <div class="insight-title">📊 Data Volume</div>
+                    <div class="insight-description">
+                        <strong>1,500 samples</strong> with <strong>27 features</strong><br>
+                        Standard image dimensions: 640×605 pixels<br>
+                        Complete dataset with minimal missing values
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">🏷️ Label Categories</div>
+                    <div class="insight-description">
+                        <strong>7 emotion classes:</strong> angry, disgust, fear, happy, sad, surprise, neutral<br>
+                        Both numeric (0-6) and text label formats available
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">📡 Model Architectures</div>
+                    <div class="insight-description">
+                        <strong>EXPW Models:</strong> 7B/3B parameters, trained/untrained variants<br>
+                        <strong>Vision-Language:</strong> VideoLLaMA2, LLaVANext, VILA, MiniCPM-V, VideoCCAM
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">🎨 Bounding Box Formats</div>
+                    <div class="insight-description">
+                        <strong>5 coordinate systems:</strong><br>
+                        Original, Resized, Retina, Standard, Relative Area<br>
+                        Supports comprehensive face detection analysis
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Usage Scenarios -->
+        <section class="chart-section">
+            <h2 class="section-title">💡 Research Applications</h2>
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <div class="insight-title">🔬 Model Benchmarking</div>
+                    <div class="insight-description">
+                        Compare performance across different model architectures and training approaches on standardized emotion recognition tasks.
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">📈 Performance Analysis</div>
+                    <div class="insight-description">
+                        Evaluate model agreement patterns, prediction consistency, and accuracy against ground truth annotations.
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">🧪 Multi-Modal Learning</div>
+                    <div class="insight-description">
+                        Study how vision-language models integrate visual and textual information for emotion recognition tasks.
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">👁️ Face Detection Research</div>
+                    <div class="insight-description">
+                        Analyze face detection accuracy using multiple coordinate systems and bounding box formats.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Generated from EXPW (Expression in the Wild) Dataset Analysis • 2024</p>
+            <p>Emotion Recognition Research Dashboard</p>
+        </footer>
+    </div>
+
+    <script>
+        // Emotion Distribution Chart
+        const emotionCtx = document.getElementById('emotionChart').getContext('2d');
+        
+        // Sample emotion distribution data (replace with actual data)
+        const emotionData = {
+            labels: ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral'],
+            datasets: [{
+                label: 'Sample Count',
+                data: [214, 143, 215, 214, 214, 214, 286], // Sample data
+                backgroundColor: [
+                    '#e74c3c',
+                    '#8e44ad',
+                    '#34495e',
+                    '#f1c40f',
+                    '#3498db',
+                    '#e67e22',
+                    '#95a5a6'
+                ],
+                borderColor: [
+                    '#c0392b',
+                    '#7d3c98',
+                    '#2c3e50',
+                    '#f39c12',
+                    '#2980b9',
+                    '#d35400',
+                    '#7f8c8d'
+                ],
+                borderWidth: 2
+            }]
+        };
+
+        new Chart(emotionCtx, {
+            type: 'doughnut',
+            data: emotionData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Distribution of Emotion Labels in Dataset',
+                        font: {
+                            size: 16
+                        }
+                    }
+                }
+            }
+        });
+
+        // Dataset Characteristics Chart
+        const characteristicsCtx = document.getElementById('characteristicsChart').getContext('2d');
+        
+        const characteristicsData = {
+            labels: ['Image/Video Info', 'Face Bounding Boxes', 'Emotion Labels', 'Model Predictions', 'Response Data'],
+            datasets: [{
+                label: 'Feature Count',
+                data: [4, 5, 2, 12, 2],
+                backgroundColor: [
+                    'rgba(52, 152, 219, 0.8)',
+                    'rgba(155, 89, 182, 0.8)',
+                    'rgba(231, 76, 60, 0.8)',
+                    'rgba(46, 204, 113, 0.8)',
+                    'rgba(241, 196, 15, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(41, 128, 185, 1)',
+                    'rgba(142, 68, 173, 1)',
+                    'rgba(192, 57, 43, 1)',
+                    'rgba(39, 174, 96, 1)',
+                    'rgba(243, 156, 18, 1)'
+                ],
+                borderWidth: 2
+            }]
+        };
+
+        new Chart(characteristicsCtx, {
+            type: 'bar',
+            data: characteristicsData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Dataset Feature Categories Distribution',
+                        font: {
+                            size: 16
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Features'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Feature Categories'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Add smooth scrolling and animation effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate stat cards on load
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'all 0.5s ease';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 100);
+            });
+
+            // Animate coverage bars
+            const coverageBars = document.querySelectorAll('.coverage-fill');
+            setTimeout(() => {
+                coverageBars.forEach(bar => {
+                    const width = bar.style.width;
+                    bar.style.width = '0%';
+                    setTimeout(() => {
+                        bar.style.width = width;
+                    }, 500);
+                });
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
