@@ -36,6 +36,11 @@ class MultiModelEvaluator:
                 "results_file": "../../results/gemini_emotion_results.json", 
                 "model_name": "google/gemini-2.5-flash-image-preview",
                 "color": "#27ae60"
+            },
+            "GPT-5": {
+                "results_file": "../../results/gpt5_emotion_results.json",
+                "model_name": "openai/gpt-5", 
+                "color": "#e74c3c"
             }
         }
         
@@ -450,7 +455,12 @@ class MultiModelEvaluator:
         # Add comparison rows
         for model_key, eval_results in evaluations.items():
             stats = model_stats[model_key]
-            speed = "2.9s/img" if "Gemini" in model_key else "4.5s/img"
+            if "Gemini" in model_key:
+                speed = "2.9s/img"
+            elif "GPT-5" in model_key:
+                speed = "~3.5s/img"  # Estimated speed for GPT-5
+            else:
+                speed = "4.5s/img"
             
             # Determine best scores
             accuracy_class = "best-score" if model_key == best_model else ""
@@ -491,7 +501,7 @@ class MultiModelEvaluator:
 
             <div class="insight-card">
                 <div class="insight-title">⚡ Speed Comparison</div>
-                <p>Gemini 2.5 Flash processes images 55% faster (2.9s vs 4.5s per image), making it more suitable for real-time applications despite potentially lower accuracy.</p>
+                <p>Processing speeds vary across models, with Gemini 2.5 Flash being fastest (2.9s), GPT-5 estimated at ~3.5s, and GLM-4.5V at 4.5s per image.</p>
             </div>
 
             <div class="insight-card">
