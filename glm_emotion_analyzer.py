@@ -211,11 +211,15 @@ Reply with just the emotion word."""
             print(f"   ✗ Error: {e}")
             return error_result
     
-    def analyze_batch(self, image_folder: Path, num_images: int = 20) -> List[Dict]:
-        """Analyze emotions in a batch of images"""
+    def analyze_batch(self, image_folder: Path, num_images: int = None) -> List[Dict]:
+        """Analyze emotions in a batch of images
+        
+        Args:
+            image_folder: Path to folder containing images
+            num_images: Number of images to analyze (None = all images)
+        """
         print(f"🚀 Starting GLM-4.5V emotion analysis")
         print(f"📁 Image folder: {image_folder}")
-        print(f"🎯 Target images: {num_images}")
         print("-" * 60)
         
         # Get list of image files
@@ -229,24 +233,33 @@ Reply with just the emotion word."""
             print(f"❌ No image files found in {image_folder}")
             return []
         
-        print(f"📷 Found {len(image_files)} image files")
+        print(f"📷 Found {len(image_files)} total image files")
         
-        # Randomly select images if more than requested
-        if len(image_files) > num_images:
+        # Select images based on num_images parameter
+        if num_images and len(image_files) > num_images:
             selected_images = random.sample(image_files, num_images)
             print(f"🎲 Randomly selected {num_images} images for analysis")
         else:
-            selected_images = image_files[:num_images]
-            print(f"📝 Analyzing all {len(selected_images)} available images")
+            selected_images = image_files
+            print(f"📝 Analyzing ALL {len(selected_images)} images")
         
         # Sort for consistent ordering
         selected_images.sort(key=lambda x: x.name)
+        print(f"🔄 Processing images in alphabetical order...")
         
         results = []
         total_tokens = 0
+        start_time = time.time()
+        
+        # Print initial status
+        print(f"\n📊 Starting batch processing at {time.strftime('%H:%M:%S')}")
+        print(f"⏱️  Estimated time: ~{len(selected_images) * 2} seconds")
+        print("-" * 60)
         
         for i, image_path in enumerate(selected_images, 1):
-            print(f"\n[{i}/{len(selected_images)}] ", end="")
+            # Progress indicator with percentage
+            progress_pct = (i / len(selected_images)) * 100
+            print(f"\n[{i}/{len(selected_images)}] ({progress_pct:.1f}%) ", end="")
             
             result = self.analyze_emotion(image_path)
             results.append(result)
@@ -254,13 +267,25 @@ Reply with just the emotion word."""
             if 'tokens_used' in result:
                 total_tokens += result['tokens_used']
             
+            # Show running statistics every 10 images
+            if i % 10 == 0:
+                elapsed = time.time() - start_time
+                avg_time = elapsed / i
+                remaining = avg_time * (len(selected_images) - i)
+                print(f"\n   ⏱️  Progress: {i} done, ~{remaining:.0f}s remaining")
+                print(f"   🪙  Tokens used so far: {total_tokens:,}")
+            
             # Rate limiting - small delay between requests
             if i < len(selected_images):
                 time.sleep(1)
         
+        # Final summary with timing
+        total_time = time.time() - start_time
         print(f"\n" + "="*60)
-        print(f"✅ Analysis Complete!")
+        print(f"✅ Analysis Complete at {time.strftime('%H:%M:%S')}!")
         print(f"📊 Results: {len(results)} images processed")
+        print(f"⏱️  Total time: {total_time:.1f} seconds ({total_time/60:.1f} minutes)")
+        print(f"⚡ Average time per image: {total_time/len(results):.1f} seconds")
         print(f"🪙 Total tokens used: {total_tokens:,}")
         
         # Summary statistics
@@ -349,7 +374,7 @@ def main():
     
     # Configuration
     IMAGE_FOLDER = Path(r"C:\Users\zdhpe\Desktop\emotion\dfew_128\New folder")
-    NUM_IMAGES = 20
+    NUM_IMAGES = None  # None = analyze ALL images, or specify a number to limit
     OUTPUT_FILE = "glm_emotion_results.json"
     
     print("🎭 GLM-4.5V Emotion Recognition Analyzer")
